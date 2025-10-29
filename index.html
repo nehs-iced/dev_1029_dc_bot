@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <title>PDF 簡報</title>
+  <style>
+    body, html { margin:0; padding:0; height:100%; background:#111; display:flex; align-items:center; justify-content:center; }
+    canvas { max-width:100%; max-height:100%; background:white; }
+  </style>
+</head>
+<body>
+  <canvas id="pdf-canvas"></canvas>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    let pdfDoc = null, canvas = document.getElementById('pdf-canvas'), ctx = canvas.getContext('2d');
+    let groups = [], currentGroup = 0, currentSub = 0;
+
+    async function load() {
+      const cfg = await (await fetch('setting.json')).json();
+      groups = cfg.groups;
+      pdfDoc = await pdfjsLib.getDocument(cfg.pdf).promise;
+      render();
+    }
+
+    function render() {
+      const pageNum = groups[currentGroup].pages[currentSub];
+      pdfDoc.getPage(pageNum).then(page => {
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        page.render({ canvasContext: ctx, viewport });
+      });
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') { // 下一群組
+        if (currentGroup < groups.length - 1) { currentGroup++; currentSub = 0; render(); }
+      }
+      if (e.key === 'ArrowLeft') { // 上一群組
+        if (currentGroup > 0) { currentGroup--; currentSub = 0; render(); }
+      }
+      if (e.key === 'ArrowDown') { // 下一子頁
+        if (currentSub < groups[currentGroup].pages.length - 1) { currentSub++; render(); }
+      }
+      if (e.key === 'ArrowUp') { // 上一子頁
+        if (currentSub > 0) { currentSub--; render(); }
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>
