@@ -30,6 +30,7 @@
       border-radius: 6px; cursor: pointer;
     }
     .ctrl-btn:hover { background: rgba(0,0,0,0.8); }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -53,6 +54,11 @@
     let pdfDoc = null, canvas = document.getElementById('pdf-canvas'), ctx = canvas.getContext('2d');
     let groups = [], currentGroup = 0, currentSub = 0;
 
+    const btnLeft = document.getElementById("left");
+    const btnRight = document.getElementById("right");
+    const btnUp = document.getElementById("up");
+    const btnDown = document.getElementById("down");
+
     async function load() {
       const cfg = await (await fetch('setting.json')).json();
       groups = cfg.groups;
@@ -70,6 +76,16 @@
         canvas.height = viewport.height;
         page.render({ canvasContext: ctx, viewport });
       });
+      updateControls();
+    }
+
+    function updateControls() {
+      // 左右群組
+      btnLeft.classList.toggle("hidden", currentGroup === 0);
+      btnRight.classList.toggle("hidden", currentGroup === groups.length - 1);
+      // 上下子頁
+      btnUp.classList.toggle("hidden", currentSub === 0);
+      btnDown.classList.toggle("hidden", currentSub === groups[currentGroup].pages.length - 1);
     }
 
     function goLeft() {
@@ -94,10 +110,10 @@
     });
 
     // 點擊控制
-    document.getElementById("left").onclick = goLeft;
-    document.getElementById("right").onclick = goRight;
-    document.getElementById("up").onclick = goUp;
-    document.getElementById("down").onclick = goDown;
+    btnLeft.onclick = goLeft;
+    btnRight.onclick = goRight;
+    btnUp.onclick = goUp;
+    btnDown.onclick = goDown;
 
     load();
   </script>
